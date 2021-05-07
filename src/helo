@@ -1,0 +1,102 @@
+#!/system/bin/sh
+
+sleep 90
+
+##########PARAMETERS##########
+SIGNIN="1298 58"
+POP1="1322 236"
+POP2="1330 220"
+LOBBY="1060 78"
+SWIPE="1200 600 1200 100"
+RSWIPE="1200 100 1200 600"
+WAIT=11
+##########PARAMETERS##########
+
+tap()
+{
+	input tap $1 $2
+}
+
+swp()
+{
+	input swipe $SWIPE $@
+}
+
+rswp()
+{
+	input swipe $RSWIPE $@
+}
+
+chkhelo()
+{
+	if [ ! -d /data/data/app.buzz.share ]
+	then
+		exit
+	fi
+}
+
+connwifi()
+{
+	if [ -z $(ifconfig | grep 192.168 | cut -d ":" -f2 | cut -d " " -f1 ) ]
+	then
+		am start -n com.android.settings/.wifi.WifiSettings
+		sleep 3
+		tap 1000 150
+		tap 1134 366
+		kill -9 $(ps | grep settings | cut -d " " -f5)
+		sleep 2
+	else
+		echo "WLAN Connected"
+	fi	
+}
+
+chkwificonn()
+{
+	if [ -z $(ifconfig | grep 192.168 | cut -d ":" -f2 | cut -d " " -f1 ) ]
+	then
+		echo "Not Connected"
+		exit
+	else
+		echo "WLAN Connected"
+	fi
+}
+
+wait()
+{
+	sleep $(($WAIT*60))
+}
+
+poff()
+{
+	sleep 10
+	svc power shutdown
+}
+
+reb()
+{
+	sleep 10
+	svc power reboot
+}
+
+helo()
+{
+	am start -n app.buzz.share/com.ss.android.buzz.BuzzMainActivity
+	sleep 20
+	tap $SIGNIN ; sleep 10				#sign_in
+	tap $POP1 ; sleep 2				#popup_close
+	swp
+	rswp
+	tap $LOBBY ; sleep 2				#lobby
+	swp 50
+	wait						#wait_$WAIT_minutes
+	rswp
+	tap $SIGNIN ; sleep 10				#sign_in
+	tap $POP2 ; sleep 2				#popup_close
+	swp 100
+	echo DONE
+}
+########################################################################
+connwifi
+chkwificonn
+helo
+reb

@@ -1,0 +1,27 @@
+#!/system/bin/sh
+
+FILE="/sdcard/test.txt"
+
+if [ -f $FILE ]
+then
+	rm $FILE
+fi
+
+i=1
+
+chk()
+{
+	while [ ! $i -eq 0 ]
+	do 
+		if [ -f /sdcard/stop ]
+		then
+			i=0
+		else
+			echo "$i\n" >> $FILE
+			i=$(($i+1))
+			sleep 1
+		fi
+	done
+}
+
+chk

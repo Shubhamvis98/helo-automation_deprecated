@@ -1,0 +1,48 @@
+#!/system/bin/sh
+
+###EXPORTS###
+OS=NEXT_OS
+EFI=sdb2
+MNTPNT="/data/local/tmp"
+AUTOCFG="${MNTPNT}/EFI/PhoenixOS/boot/auto.cfg"
+###EXPORTS###
+
+sleep 120
+
+mount /dev/block/$EFI $MNTPNT
+
+if [ -f $AUTOCFG ]
+then
+	echo "[#] Auto Config File Found..."
+else
+	echo "[!] Auto Config File Not Found..."
+	echo "Exitting..."
+	umount $MNTPNT
+	sleep 1
+	svc power shutdown
+	exit
+fi
+
+echo "\nInjecting Entry..."
+sleep 1
+
+echo """
+set timeout=1
+menuentry 'PhoenixOS $OS' --class android-x86 {
+		search --set=root --file /EFI/PhoenixOS/kernel
+		linux /EFI/PhoenixOS/kernel quiet root=/dev/ram0 androidboot.hardware=android_x86 vga=788 i8042.nokbd=0 SRC=/POS$OS
+		initrd /EFI/PhoenixOS/initrd.img
+}
+""">$AUTOCFG
+
+umount $MNTPNT
+
+sleep 60
+
+if [ -z "$( ps | grep app.buzz.share )" ]
+then
+	echo "[!] Helo Not Running..."
+	echo "[!] Shutting Down..."
+	svc power shutdown
+fi
+
